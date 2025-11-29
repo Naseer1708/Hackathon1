@@ -1,68 +1,66 @@
+// StudentDataContext.jsx
 import React, { createContext, useContext, useState } from "react";
 
 const StudentDataContext = createContext();
 
-export const useStudentData = () => useContext(StudentDataContext);
-
 export function StudentDataProvider({ children }) {
+  // One demo student; admin will keep adding courses/marks for this student
   const [students, setStudents] = useState([
     {
-      id: 1,
-      name: "John Doe",
-      gpa: 3.4,
-      attendance: 91,
+      id: "STU001",
+      name: "Demo Student",
+      gpa: 3.5,
+      attendance: 92,
       courses: [
-        { id: "MATH101", name: "Mathematics", grade: 85, comment: "Good performance" },
-        { id: "PHY101",  name: "Physics",     grade: 78, comment: "Needs improvement in theory" },
-        { id: "CHEM101", name: "Chemistry",   grade: 92, comment: "Excellent work" }
-      ]
-    }
+        // { id: "CS101", name: "Intro to CS", grade: 85, comment: "Good job" }
+      ],
+    },
   ]);
 
-  // Update grade (and optionally comment) for a given student + course
-  const updateGrade = (studentId, courseId, newGrade, newComment) => {
-    setStudents(prev =>
-      prev.map(s => {
-        if (s.id !== studentId) return s;
+  // Helper: add or update a course mark for a given student
+  const addOrUpdateMark = ({ studentId, courseId, courseName, marks }) => {
+    setStudents((prev) =>
+      prev.map((stu) => {
+        if (stu.id !== studentId) return stu;
 
-        const updatedCourses = s.courses.map(c =>
-          c.id === courseId
-            ? {
-                ...c,
-                grade: newGrade,
-                comment: newComment !== undefined ? newComment : c.comment
-              }
-            : c
+        const existingIndex = stu.courses.findIndex(
+          (c) => c.id === courseId
         );
 
-        const avg =
-          updatedCourses.reduce((sum, c) => sum + c.grade, 0) /
-          updatedCourses.length;
-        const newGpa = +(avg / 25).toFixed(2);
+        // If course already exists, update grade; else push new course
+        let updatedCourses;
+        if (existingIndex !== -1) {
+          updatedCourses = [...stu.courses];
+          updatedCourses[existingIndex] = {
+            ...updatedCourses[existingIndex],
+            name: courseName || updatedCourses[existingIndex].name,
+            grade: marks,
+          };
+        } else {
+          updatedCourses = [
+            ...stu.courses,
+            {
+              id: courseId,
+              name: courseName || courseId,
+              grade: marks,
+              comment: "",
+            },
+          ];
+        }
 
-        return { ...s, courses: updatedCourses, gpa: newGpa };
+        return { ...stu, courses: updatedCourses };
       })
     );
   };
 
-  // Admin helper: called from Admin Manage Marks form
-  const setGradeFromAdmin = (studentId, courseId, newGrade) => {
-    updateGrade(studentId, courseId, newGrade);
-  };
-
-  const updateAttendance = (studentId, newAttendancePercent) => {
-    setStudents(prev =>
-      prev.map(s =>
-        s.id === studentId ? { ...s, attendance: newAttendancePercent } : s
-      )
-    );
-  };
-
+  const value = { students, setStudents, addOrUpdateMark };
   return (
-    <StudentDataContext.Provider
-      value={{ students, updateGrade, updateAttendance, setGradeFromAdmin }}
-    >
+    <StudentDataContext.Provider value={value}>
       {children}
     </StudentDataContext.Provider>
   );
+}
+
+export function useStudentData() {
+  return useContext(StudentDataContext);
 }

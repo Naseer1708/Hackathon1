@@ -92,6 +92,13 @@ function StudentDashboard({ student, courses }) {
 
   const barOptions = {
     responsive: true,
+    animation: {
+      duration: 1000,
+      easing: "easeOutQuart",
+    },
+    hover: {
+      animationDuration: 400,
+    },
     plugins: {
       legend: {
         display: false,
@@ -128,6 +135,12 @@ function StudentDashboard({ student, courses }) {
   };
 
   const pieOptions = {
+    animation: {
+      animateRotate: true,
+      animateScale: true,
+      duration: 900,
+      easing: "easeOutBack",
+    },
     plugins: {
       legend: {
         position: "bottom",
